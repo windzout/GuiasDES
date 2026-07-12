@@ -1,7 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using MVCPeliculas.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Registro del contexto de base de datos
+builder.Services.AddDbContext<PeliculasDbContext>(item => item.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
 var app = builder.Build();
 
