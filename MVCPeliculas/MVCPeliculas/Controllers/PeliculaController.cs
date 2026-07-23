@@ -20,10 +20,14 @@ namespace MVCPeliculas.Controllers
         }
 
         // GET: Pelicula
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchString)
         {
-            var peliculasDbContext = _context.Peliculas.Include(p => p.Genero);
-            return View(await peliculasDbContext.ToListAsync());
+            var peliculas = await _context.Peliculas
+            .Include(p => p.Genero)
+            .Where(p => string.IsNullOrEmpty(searchString) || p.Titulo.Contains(searchString))
+            .ToListAsync();
+            return View(peliculas);
+            //return View(await _context.Peliculas.ToListAsync());
         }
 
         // GET: Pelicula/Details/5
@@ -48,7 +52,8 @@ namespace MVCPeliculas.Controllers
         // GET: Pelicula/Create
         public IActionResult Create()
         {
-            ViewData["GeneroId"] = new SelectList(_context.Generos, "Id", "Id");
+            var generos = _context.Generos.ToList();
+            ViewData["GeneroId"] = new SelectList(_context.Generos, "Id", "Nombre");
             return View();
         }
 
@@ -57,7 +62,7 @@ namespace MVCPeliculas.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Titulo,FechaLanzamiento,Precio,Director,GeneroId")] Pelicula pelicula)
+        public async Task<IActionResult> Create(Pelicula pelicula)
         {
             if (ModelState.IsValid)
             {
@@ -65,7 +70,8 @@ namespace MVCPeliculas.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["GeneroId"] = new SelectList(_context.Generos, "Id", "Id", pelicula.GeneroId);
+            var generos = await _context.Generos.ToListAsync();
+            ViewBag.GeneroId = new SelectList(generos, "Id", "Nombre", pelicula.GeneroId);
             return View(pelicula);
         }
 
